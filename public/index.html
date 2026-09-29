@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Live Collaboration Tool</title>
+    <style>
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0d1117; color: #c9d1d9; }
+        header { padding: 15px; background-color: #161b22; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
+        h1 { margin: 0; font-size: 1.2rem; color: #58a6ff; }
+        #editor-container { padding: 20px; box-sizing: border-box; height: calc(100vh - 70px); }
+        textarea { width: 100%; height: 100%; background-color: #010409; color: #79c0ff; border: 1px solid #30363d; border-radius: 6px; padding: 15px; font-family: "Courier New", Courier, monospace; font-size: 16px; resize: none; outline: none; }
+        textarea:focus { border-color: #58a6ff; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>GitHub Real-Time Live Editor (Experimental)</h1>
+        <div id="status">🟢 Connected</div>
+    </header>
+    <div id="editor-container">
+        <textarea id="code-editor" placeholder="Loading code environment..."></textarea>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const editor = document.getElementById('code-editor');
+
+        // Receive initial document state
+        socket.on('init-code', (initialCode) => {
+            editor.value = initialCode;
+        });
+
+        // Listen for typing events and send payload
+        editor.addEventListener('input', (e) => {
+            const code = e.target.value;
+            socket.emit('code-change', code);
+        });
+
+        // Receive real-time typing updates from other users
+        socket.on('code-update', (updatedCode) => {
+            const selectionStart = editor.selectionStart;
+            const selectionEnd = editor.selectionEnd;
+            editor.value = updatedCode;
+            // Restore user cursor position
+            editor.setSelectionRange(selectionStart, selectionEnd);
+        });
+    </script>
+</body>
+</html>
